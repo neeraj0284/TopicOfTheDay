@@ -1,0 +1,117 @@
+<DOCTYPE! html>
+<html>
+<head>
+  <title> CHAT IO </title>
+  <style>
+    body{
+      background: #f9f9f9;
+    }
+    #container{width: 700px;
+    margin: 0 auto;
+  }
+  #chatwindow{
+    height:300px;
+  }
+  #mainwrapper{
+display:none;
+  }
+  #chatwrapper{
+    float:left;
+    border:1px #ccc solid;
+    border-radius: 10px;
+    background:#f4f4f4;
+    padding:10 px;
+  }
+  #userwrapper{
+    float:left;
+    border:1px #ccc solid;
+    border-radius: 10px;
+    background:#f4f4f4;
+    padding:10 px;
+    margin-left: 20px;
+    width: 150px;
+  }
+  #nameswrapper{
+    float:left;
+    border:1px #ccc solid;
+    border-radius: 10px;
+    background:#f4f4f4;
+    padding:10 px;
+    margin-left: 20px;
+  }
+  {
+  height:30px;}
+  </style>
+</head>
+<body>
+<div id="container">
+<div id="nameswrapper">
+   <h2> TOPIC OF THE DAY</h2>
+   <p> Enter Your Username</p>
+   <div id="error"></div>
+   <form id="usernameform">
+       <input size="35" id="username" placeholder="Your Name">
+       <input type="submit" value="submit">
+   </form>
+</div>
+<div id="mainwrapper">
+   <h2> TERRORISM </h2>
+   <div id="chatwrapper">
+     <div id="chatwindow">
+     </div>
+     <form id="messageform">
+       <input size="35" id="message" placeholder="Type Something...">
+       <input type="submit" value="SayIt">
+   </form>
+   </div>
+   <div id="userwrapper">
+      <div id="users"></div>
+   </div>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+   $(function(){
+     var socket=io.connect();
+     var $messageform=$('#messageform');
+     var $message=$('#message');
+     var $chat=$('#chatwindow');
+     var $usernameform=$('#usernameform');
+     var $users=$('#users');
+     var $username=$('#username');
+     var $error=$('#error');
+
+     $usernameform.submit(function(e){
+       e.preventDefault();
+       socket.emit('new user',$username.val(),function(data){
+         if(data){
+           $('#nameswrapper').hide();
+           $('#mainwrapper').show();
+         }else{
+           $error.html('Username is already taken!!');
+         }
+         $username.val('');
+       });
+      socket.on('usernames',function(data){
+        var html='';
+        for(var i=0; i<data.length; i++){
+          html+=data[i]+'<br>';
+        }
+        $users.html(html);
+      });
+
+
+     })
+     $messageform.submit(function(e){
+       e.preventDefault();
+       socket.emit('send message',$message.val());
+       $message.val('');
+     });
+     socket.on('new message',function(data){
+       $chat.append('<strong>'+data.user+'</strong> '+data.msg+'<br>');
+     });
+   });
+  </script>
+</body>
+</html>
